@@ -12,12 +12,16 @@ def build_signals(
     scene_types
 ):
     # ---------------- FOOD CONTEXT ----------------
+    crash_detected = any(obj in ["vehicle_crash", "accident", "crash"] for obj in risky_objects)
+    
     food_context = (
-        len(safe_objects) > 0
-        or any(
-            kw in label.lower()
-            for label, _ in scene_labels
-            for kw in ["kitchen", "cooking", "food", "vegetable", "cutting"]
+        not crash_detected and (
+            len(safe_objects) > 0
+            or any(
+                kw in label.lower()
+                for label, _ in scene_labels
+                for kw in ["kitchen", "cooking", "food", "vegetable", "cutting"]
+            )
         )
     )
 
@@ -32,7 +36,8 @@ def build_signals(
             "knife_present": "knife" in risky_objects,
             "weapon_present": any(o in ["gun", "pistol", "rifle"] for o in risky_objects),
             "food_present": food_context,
-            "vehicle_present": any(o in ["car", "bus", "truck"] for o in risky_objects),
+            "vehicle_present": any(o in ["car", "bus", "truck", "vehicle_crash", "accident"] for o in risky_objects),
+            "crash_detected": crash_detected,
         },
 
         "human": {

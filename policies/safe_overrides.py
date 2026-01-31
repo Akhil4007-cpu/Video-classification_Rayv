@@ -22,6 +22,7 @@ def apply_safe_overrides(risk_score, reasons, signals):
         visual.get("blood_visible", False)
         or motion.get("aggressive_motion", False)
         or pose.get("raised_arms", False)
+        or entity.get("crash_detected", False)  # Don't override vehicle crashes
     ):
         return round(risk_score, 3), reasons
 

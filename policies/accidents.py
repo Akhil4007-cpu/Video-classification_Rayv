@@ -15,7 +15,13 @@ def evaluate_accidents(signals):
     risk = 0.0
     reasons = []
 
-    if (
+    # HIGH RISK — VEHICLE CRASH
+    if entity.get("crash_detected", False):
+        risk = 0.8
+        reasons.append("Vehicle crash detected")
+
+    # MEDIUM RISK — POSSIBLE ACCIDENT
+    elif (
         motion.get("sudden_motion", False)
         and temporal.get("possible_accident", False)
         and not entity.get("weapon_present", False)

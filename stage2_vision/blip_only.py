@@ -29,11 +29,29 @@ def detect_objects_blip_only(frames):
         if any(word in desc_lower for word in ["gun", "rifle", "pistol"]):
             risky_objects.append("gun")
         
-        # Safe objects detection
-        if any(word in desc_lower for word in ["tomato", "vegetable", "food", "cooking", "kitchen"]):
-            safe_objects.extend(["food", "vegetable"])
-            if "cooking" in desc_lower or "kitchen" in desc_lower:
-                safe_objects.append("kitchen")
+        # Vehicle and crash detection
+        if any(word in desc_lower for word in ["car", "vehicle", "truck", "automobile"]):
+            if any(word in desc_lower for word in ["crash", "accident", "collision", "wreck", "smash", "hit"]):
+                risky_objects.append("vehicle_crash")
+                risky_objects.append("accident")
+            else:
+                safe_objects.append("vehicle")
+        
+        # Fire and explosion detection
+        if any(word in desc_lower for word in ["fire", "flame", "explosion", "burning"]):
+            risky_objects.append("fire")
+        
+        # Violence detection
+        if any(word in desc_lower for word in ["fight", "attack", "violence", "assault", "punch"]):
+            risky_objects.append("violence")
+        
+        # Safe objects detection (but exclude if crash detected)
+        crash_detected = any(word in desc_lower for word in ["crash", "accident", "collision", "wreck"])
+        if not crash_detected:
+            if any(word in desc_lower for word in ["tomato", "vegetable", "food", "cooking", "kitchen"]):
+                safe_objects.extend(["food", "vegetable"])
+                if "cooking" in desc_lower or "kitchen" in desc_lower:
+                    safe_objects.append("kitchen")
         
         all_risky_objects.extend(risky_objects)
         all_safe_objects.extend(safe_objects)
