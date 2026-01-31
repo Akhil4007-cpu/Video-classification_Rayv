@@ -56,13 +56,15 @@ def evaluate_violence(signals):
     # ------------------------------------------------
     if visual.get("blood_visible", False):
 
-        # 🛑 Blood + food context → NOT violence
+        # 🛑 Blood + food context → NOT violence (but still verify it's actually cooking)
         if (
             entity.get("food_present", False)
+            and scene.get("kitchen", False)
             and not audio.get("panic_audio", False)
+            and motion.get("motion_score", 0) < 30
         ):
-            risk = max(risk, 0.2)
-            reasons.append("Red fluid detected with food context (likely cooking)")
+            risk = max(risk, 0.1)  # Very low risk for confirmed cooking
+            reasons.append("Red fluid in confirmed cooking context")
 
         # 🚨 Blood + aggressive intent → violence
         elif (
@@ -72,10 +74,10 @@ def evaluate_violence(signals):
             risk = max(risk, 0.9)
             reasons.append("Visible blood with aggressive intent")
 
-        # ⚠️ Blood but unclear intent → REVIEW
+        # ⚠️ Blood but unclear intent → REVIEW (be more conservative)
         else:
-            risk = max(risk, 0.4)
-            reasons.append("Blood-like visual detected (ambiguous context)")
+            risk = max(risk, 0.3)  # Reduced from 0.4
+            reasons.append("Blood-like visual detected (requires review)")
 
     # ------------------------------------------------
     # AUDIO ESCALATION

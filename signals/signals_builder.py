@@ -14,15 +14,22 @@ def build_signals(
     # ---------------- FOOD CONTEXT ----------------
     crash_detected = any(obj in ["vehicle_crash", "accident", "crash"] for obj in risky_objects)
     
+    # Much stricter food context detection - require explicit food indicators
+    food_keywords = ["kitchen", "cooking", "food", "vegetable", "cutting", "chef", "recipe", "meal", "dinner", "lunch", "breakfast", "restaurant", "tomato", "pepper"]
+    cooking_objects = ["knife", "cutting_board", "pot", "pan", "stove", "oven", "grill", "mixing_bowl", "spatula", "fork", "spoon", "food", "vegetable"]
+    
+    # Require scene description OR objects to indicate cooking (more lenient)
+    scene_has_food = any(
+        kw in label.lower()
+        for label, _ in scene_labels
+        for kw in food_keywords
+    )
+    
+    objects_have_food = any(obj in safe_objects for obj in cooking_objects)
+    
     food_context = (
-        not crash_detected and (
-            len(safe_objects) > 0
-            or any(
-                kw in label.lower()
-                for label, _ in scene_labels
-                for kw in ["kitchen", "cooking", "food", "vegetable", "cutting"]
-            )
-        )
+        not crash_detected 
+        and (scene_has_food or objects_have_food)
     )
 
     human_present = (
@@ -33,7 +40,7 @@ def build_signals(
 
     return {
         "entity": {
-            "knife_present": "knife" in risky_objects,
+            "knife_present": "knife" in risky_objects or any("cutting" in label.lower() for label, _ in scene_labels),
             "weapon_present": any(o in ["gun", "pistol", "rifle"] for o in risky_objects),
             "food_present": food_context,
             "vehicle_present": any(o in ["car", "bus", "truck", "vehicle_crash", "accident"] for o in risky_objects),
