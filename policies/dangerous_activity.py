@@ -23,7 +23,7 @@ def evaluate_dangerous_activity(signals):
     # ✅ HARD SAFE OVERRIDE — COOKING
     if (
         entity.get("food_present", False)
-        and scene.get("kitchen", False)
+        and (scene.get("kitchen", False) or entity.get("knife_present", False))
         and not audio.get("panic_audio", False)
     ):
         return 0.0, ["Safe cooking activity"]
