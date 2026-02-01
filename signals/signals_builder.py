@@ -45,6 +45,8 @@ def build_signals(
             "food_present": food_context,
             "vehicle_present": any(o in ["car", "bus", "truck", "vehicle_crash", "accident"] for o in risky_objects),
             "crash_detected": crash_detected,
+            "fire_present": "fire" in risky_objects,
+            "risky_objects": risky_objects,  # Pass full list for detailed checking
         },
 
         "human": {

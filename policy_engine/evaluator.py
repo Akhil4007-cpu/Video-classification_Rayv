@@ -3,6 +3,7 @@ from policies.nudity import evaluate_nudity
 from policies.accidents import evaluate_accidents
 from policies.dangerous_activity import evaluate_dangerous_activity
 from policies.self_harm import evaluate_self_harm
+from policies.fire_safety import evaluate_fire_safety
 from policies.safe_overrides import apply_safe_overrides
 
 
@@ -19,6 +20,7 @@ def evaluate_policies(signals):
         ("self_harm", evaluate_self_harm),
         ("accidents", evaluate_accidents),
         ("dangerous_activity", evaluate_dangerous_activity),
+        ("fire_safety", evaluate_fire_safety),  # New dedicated fire policy
     ]:
         score, reasons = fn(signals)
         score, reasons = apply_safe_overrides(score, reasons, signals)

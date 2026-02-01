@@ -1,6 +1,7 @@
 def evaluate_dangerous_activity(signals):
     """
     Dangerous but non-violent activities.
+    Fire is handled by dedicated fire_safety policy.
     Cooking is ALWAYS safe.
     """
 
@@ -18,8 +19,6 @@ def evaluate_dangerous_activity(signals):
     if not human.get("human_present", False):
         return 0.0, []
     
-     
-
     # ✅ HARD SAFE OVERRIDE — COOKING
     if (
         entity.get("food_present", False)
@@ -31,9 +30,8 @@ def evaluate_dangerous_activity(signals):
     if entity.get("weapon_present", False):
         return 0.0, []
 
-    if visual.get("fire_visible", False):
-        risk = max(risk, 0.85)
-        reasons.append("Fire or flame detected near human")
+    # Note: Fire detection is now handled by fire_safety policy
+    # This policy focuses on other dangerous activities
 
     if (
         motion.get("motion_score", 0) > 40
