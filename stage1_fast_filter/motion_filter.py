@@ -22,6 +22,13 @@ def motion_risk_score(frames):
 def fast_filter(frames,
                 motion_threshold=22,
                 darkness_threshold=60):
+    # Handle empty frames case
+    if not frames:
+        return False, {
+            "motion_score": 0.0,
+            "dark_ratio": 0.0
+        }
+    
     motion_score = motion_risk_score(frames)
 
     dark_frames = 0

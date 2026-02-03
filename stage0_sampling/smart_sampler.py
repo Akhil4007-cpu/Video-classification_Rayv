@@ -47,4 +47,13 @@ def smart_sample(
             break
 
     cap.release()
+    
+    # If no frames were selected (e.g., very short video), take at least 1 frame
+    if not selected_frames:
+        cap = cv2.VideoCapture(video_path)
+        ret, frame = cap.read()
+        if ret:
+            selected_frames.append(frame)
+        cap.release()
+    
     return selected_frames
