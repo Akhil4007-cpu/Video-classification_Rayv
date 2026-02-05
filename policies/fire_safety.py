@@ -27,6 +27,13 @@ def evaluate_fire_safety(signals):
         return 0.0, []
 
     # ------------------------------------------------
+    # COOKING CONTEXT OVERRIDE (CRITICAL FIX)
+    # ------------------------------------------------
+    # If we're in cooking context, immediately return SAFE - prevents false positives
+    if entity.get("food_present", False) or scene.get("kitchen", False):
+        return 0.0, ["Cooking context - safe"]
+
+    # ------------------------------------------------
     # BLIP FIRE CONTEXT ANALYSIS
     # ------------------------------------------------
     scene_labels = signals.get("scene_labels", [])

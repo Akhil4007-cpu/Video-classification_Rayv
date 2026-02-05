@@ -56,6 +56,16 @@ def evaluate_nudity(signals):
         return 0.0, []
 
     # ------------------------------------------------
+    # COOKING CONTEXT OVERRIDE (CRITICAL FIX)
+    # ------------------------------------------------
+    # If BLIP detects cooking context, immediately return SAFE - this prevents false positives
+    cooking_words = ["cooking", "food", "tomato", "vegetable", "cutting", "preparing", "kitchen", "pepper", "cutting board", "wooden"]
+    is_cooking_context = any(word in nudity_desc for word in cooking_words)
+    
+    if is_cooking_context:
+        return 0.0, ["Cooking/food preparation context - safe"]
+
+    # ------------------------------------------------
     # 🔴 CHILD SAFETY (ZERO TOLERANCE)
     # ------------------------------------------------
     if human.get("child_present", False) and skin > 0.1:
