@@ -2,6 +2,7 @@ import torch
 import warnings
 import sys
 import os
+import traceback
 from contextlib import redirect_stdout, redirect_stderr
 from transformers import BlipProcessor, BlipForConditionalGeneration
 import cv2
@@ -41,29 +42,79 @@ def get_blip_model():
 
 def batch_process_frames(frames):
     """
-    True batch processing for maximum speed
+    True batch processing for maximum speed with error handling
     """
-    model, processor = get_blip_model()
-    device = model.device
+    if not frames:
+        return []
     
-    # Prepare all frames at once
-    batch_images = []
-    for frame in frames:
-        frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-        image = Image.fromarray(frame_rgb)
-        batch_images.append(image)
-    
-    # Process entire batch at once
-    inputs = processor(batch_images, return_tensors="pt", padding=True).to(device)
-    
-    with torch.no_grad():
-        outputs = model.generate(**inputs, max_length=20, num_beams=1)
+    try:
+        model, processor = get_blip_model()
+        device = model.device
         
-    # Decode all results
+        # Prepare all frames at once with error handling
+        batch_images = []
+        for i, frame in enumerate(frames):
+            try:
+                if frame is None:
+                    print(f"⚠️  Frame {i} is None, skipping")
+                    continue
+                    
+                frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+                image = Image.fromarray(frame_rgb)
+                batch_images.append(image)
+            except Exception as e:
+                print(f"⚠️  Error processing frame {i}: {str(e)}")
+                continue
+        
+        if not batch_images:
+            print("❌ No valid frames to process")
+            return []
+        
+        # Process entire batch at once with timeout protection
+        print(f"🔄 Processing batch of {len(batch_images)} frames...")
+        inputs = processor(batch_images, return_tensors="pt", padding=True).to(device)
+        
+        with torch.no_grad():
+            try:
+                outputs = model.generate(**inputs, max_length=20, num_beams=1, do_sample=False)
+            except Exception as e:
+                print(f"⚠️  BLIP generation error: {str(e)}")
+                # Fallback to individual processing
+                return _fallback_individual_processing(batch_images, processor, model, device)
+            
+        # Decode all results with error handling
+        descriptions = []
+        for i, output in enumerate(outputs):
+            try:
+                description = processor.decode(output, skip_special_tokens=True)
+                descriptions.append(description)
+            except Exception as e:
+                print(f"⚠️  Error decoding output {i}: {str(e)}")
+                descriptions.append("error in description")
+        
+        return descriptions
+        
+    except Exception as e:
+        print(f"❌ Critical error in batch processing: {str(e)}")
+        traceback.print_exc()
+        return []
+
+
+def _fallback_individual_processing(batch_images, processor, model, device):
+    """Fallback to individual frame processing if batch fails"""
+    print("🔄 Falling back to individual frame processing...")
     descriptions = []
-    for output in outputs:
-        description = processor.decode(output, skip_special_tokens=True)
-        descriptions.append(description)
+    
+    for i, image in enumerate(batch_images):
+        try:
+            inputs = processor(image, return_tensors="pt").to(device)
+            with torch.no_grad():
+                output = model.generate(**inputs, max_length=20, num_beams=1, do_sample=False)
+            description = processor.decode(output[0], skip_special_tokens=True)
+            descriptions.append(description)
+        except Exception as e:
+            print(f"⚠️  Error in individual processing frame {i}: {str(e)}")
+            descriptions.append("error in description")
     
     return descriptions
 

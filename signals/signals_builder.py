@@ -83,5 +83,7 @@ def build_signals(
         "temporal": {
             **temporal_state,
             "possible_accident": motion_score > 20 and not temporal_state["impact_detected"]
-        }
+        },
+        
+        "scene_labels": scene_labels  # Add scene_labels for policy context analysis
     }

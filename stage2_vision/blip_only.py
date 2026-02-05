@@ -106,13 +106,13 @@ def classify_scene_blip_only(frames):
         risk_score = min(risk_score, 1.0)
         safety_score = min(safety_score, 1.0)
         
-        # Create scene result
+        # Create scene result with actual description for policy analysis
         if risk_score > safety_score:
-            scene_result = ("risky_scene", risk_score)
+            scene_result = (f"risky_scene: {description}", risk_score)
         elif safety_score > risk_score:
-            scene_result = ("safe_scene", safety_score)
+            scene_result = (f"safe_scene: {description}", safety_score)
         else:
-            scene_result = ("neutral_scene", 0.0)
+            scene_result = (f"neutral_scene: {description}", 0.0)
             
         all_scene_results.append(scene_result)
         print(f"🔍 BLIP Scene: {scene_types}")
