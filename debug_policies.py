@@ -9,7 +9,6 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 from stage0_sampling.smart_sampler import smart_sample
 from stage2_vision.blip_only import detect_objects_blip_only, classify_scene_blip_only
-from stage2_vision.blip_scene import load_labels
 from signals.signals_builder import build_signals
 from policy_engine.evaluator import evaluate_policies
 from policy_engine.aggregator import aggregate_risks
@@ -26,8 +25,7 @@ def test_crash_detection():
     
     # BLIP analysis
     risky_objects, safe_objects = detect_objects_blip_only(frames)
-    labels = load_labels("config/clip_labels.txt")
-    scene_results, scene_types = classify_scene_blip_only(frames, labels)
+    scene_results, scene_types = classify_scene_blip_only(frames)
     
     print(f"\n🔍 Risky Objects: {risky_objects}")
     print(f"🔍 Safe Objects: {safe_objects}")

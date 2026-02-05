@@ -63,7 +63,7 @@ def detect_objects_blip_only(frames):
     return list(set(all_risky_objects)), list(set(all_safe_objects))
 
 # Scene classification using BLIP-1 only (batch optimized)
-def classify_scene_blip_only(frames, labels):
+def classify_scene_blip_only(frames):
     """
     Scene classification using only BLIP-1 descriptions (batch processing)
     """
@@ -79,36 +79,42 @@ def classify_scene_blip_only(frames, labels):
         # Scene type detection
         scene_types = {
             "kitchen": any(word in desc_lower for word in ["kitchen", "cooking", "food", "tomatoes", "vegetables"]),
-            "outdoor": any(word in desc_lower for word in ["woods", "outdoor", "outside", "nature", "wood", "trees"]),
-            "indoor": any(word in desc_lower for word in ["kitchen", "room", "inside", "indoor", "home"])
+            "outdoor": any(word in desc_lower for word in ["woods", "outdoor", "outside", "nature", "wood", "trees", "mountain", "field"]),
+            "indoor": any(word in desc_lower for word in ["kitchen", "room", "inside", "indoor", "home", "building"])
         }
         
         # Aggregate scene types
         for key in all_scene_types:
             all_scene_types[key] |= scene_types[key]
         
-        # Label scoring
-        scene_scores = []
-        for label in labels:
-            label_lower = label.lower()
-            score = 0.0
+        # Direct risk/safety classification based on keywords
+        risk_keywords = ["gun", "weapon", "knife", "blood", "attack", "fight", "violent", "threatening", "harm", "screaming", "fear", "abuse", "accident", "crash", "fire"]
+        safety_keywords = ["cooking", "food", "kitchen", "vegetables", "tomatoes", "meal", "preparing", "household", "daily"]
+        
+        risk_score = 0.0
+        safety_score = 0.0
+        
+        for keyword in risk_keywords:
+            if keyword in desc_lower:
+                risk_score += 0.3
+                
+        for keyword in safety_keywords:
+            if keyword in desc_lower:
+                safety_score += 0.3
+        
+        # Cap scores at 1.0
+        risk_score = min(risk_score, 1.0)
+        safety_score = min(safety_score, 1.0)
+        
+        # Create scene result
+        if risk_score > safety_score:
+            scene_result = ("risky_scene", risk_score)
+        elif safety_score > risk_score:
+            scene_result = ("safe_scene", safety_score)
+        else:
+            scene_result = ("neutral_scene", 0.0)
             
-            if any(word in desc_lower for word in label_lower.split() if len(word) > 2):
-                score = 0.7
-                
-            if "violent" in label_lower and ("fight" in desc_lower or "attack" in desc_lower):
-                score = 0.9
-            elif "cooking" in label_lower and any(kw in desc_lower for kw in ["kitchen", "cooking", "food"]):
-                score = 0.9
-                
-            scene_scores.append(score)
-        
-        # Normalize scores
-        if max(scene_scores) > 0:
-            scene_scores = [s/max(scene_scores) for s in scene_scores]
-        
-        all_scene_results.extend(list(zip(labels, scene_scores)))
-        
+        all_scene_results.append(scene_result)
         print(f"🔍 BLIP Scene: {scene_types}")
     
     return all_scene_results, all_scene_types

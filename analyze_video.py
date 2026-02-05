@@ -21,7 +21,6 @@ from vision.human_segmenter import detect_human
 from stage0_sampling.smart_sampler import smart_sample
 from stage1_fast_filter.motion_filter import fast_filter, motion_risk_score
 from stage2_vision.blip_only import detect_objects_blip_only, classify_scene_blip_only
-from stage2_vision.blip_scene import load_labels
 from stage3_temporal.temporal_brain import TemporalBrain
 from stage6_audio.audio_utils import extract_audio
 from stage6_audio.audio_analyzer import analyze_audio
@@ -43,7 +42,6 @@ def analyze_video(video_path):
     fast_flag, fast_info = fast_filter(frames)
     print(f"⚡ Stage 1: Fast suspicious =", fast_flag, fast_info)
 
-    labels = load_labels("config/clip_labels.txt")
     brain = TemporalBrain(window_size=5)
 
     all_risky_objects = set()
@@ -101,7 +99,7 @@ def analyze_video(video_path):
     # ---------------- BATCH BLIP PROCESSING ----------------
     print("🚀 Processing frames with BLIP (TRUE BATCH MODE)...")
     risky_objects, safe_objects = detect_objects_blip_only(frames)
-    all_scene_results, scene_types = classify_scene_blip_only(frames, labels)
+    all_scene_results, scene_types = classify_scene_blip_only(frames)
     
     # Aggregate results
     all_risky_objects.update(risky_objects)

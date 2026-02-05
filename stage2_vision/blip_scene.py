@@ -39,11 +39,6 @@ def get_blip_model():
     return _blip_model, _blip_processor
 
 
-def load_labels(label_file):
-    with open(label_file, "r", encoding="utf-8") as f:
-        return [line.strip() for line in f if line.strip() and not line.startswith("#")]
-
-
 def batch_process_frames(frames):
     """
     True batch processing for maximum speed

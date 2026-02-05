@@ -63,7 +63,6 @@ def test_basic_analysis():
         import cv2
         import numpy as np
         from stage2_vision.blip_only import detect_objects_blip_only, classify_scene_blip_only
-        from stage2_vision.blip_scene import load_labels
         
         # Create a simple test frame (black image)
         test_frame = np.zeros((480, 640, 3), dtype=np.uint8)
@@ -73,8 +72,7 @@ def test_basic_analysis():
         print(f"✅ Object detection test passed: risky={risky}, safe={safe}")
         
         # Test scene classification
-        labels = load_labels("config/clip_labels.txt")
-        scene_results, scene_types = classify_scene_blip_only([test_frame], labels)
+        scene_results, scene_types = classify_scene_blip_only([test_frame])
         print(f"✅ Scene classification test passed: scene_types={scene_types}")
         
         return True
