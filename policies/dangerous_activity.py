@@ -3,6 +3,7 @@ def evaluate_dangerous_activity(signals):
     Dangerous but non-violent activities.
     Fire is handled by dedicated fire_safety policy.
     Cooking is ALWAYS safe.
+    Enhanced with BLIP context analysis.
     """
 
     risk = 0.0
@@ -16,16 +17,38 @@ def evaluate_dangerous_activity(signals):
     scene = signals["scene"]
     entity = signals["entity"]
 
+    # ------------------------------------------------
+    # BLIP CONTEXT ANALYSIS
+    # ------------------------------------------------
+    scene_labels = signals.get("scene_labels", [])
+    descriptions = [label[0] if isinstance(label, tuple) else str(label) for label in scene_labels]
+    activity_desc = " ".join(descriptions).lower()
+    
+    # Cooking context detection
+    cooking_words = ["cooking", "food", "tomato", "vegetable", "cutting", "preparing", "kitchen", "pepper", "cutting board", "wooden"]
+    is_cooking_context = any(word in activity_desc for word in cooking_words)
+    
+    # Sports/recreational context detection
+    sports_words = ["sport", "game", "playing", "athlete", "competition", "training", "exercise", "workout"]
+    recreational_words = ["park", "playground", "recreation", "fun", "entertainment", "party"]
+    
+    is_sports = any(word in activity_desc for word in sports_words)
+    is_recreational = any(word in activity_desc for word in recreational_words)
+
     if not human.get("human_present", False):
         return 0.0, []
     
-    # ✅ HARD SAFE OVERRIDE — COOKING
+    # ✅ HARD SAFE OVERRIDE — COOKING (ENHANCED)
     if (
         entity.get("food_present", False)
         and (scene.get("kitchen", False) or entity.get("knife_present", False))
         and not audio.get("panic_audio", False)
-    ):
+    ) or is_cooking_context:
         return 0.0, ["Safe cooking activity"]
+
+    # ✅ SAFE OVERRIDE — SPORTS/RECREATIONAL
+    if is_sports or is_recreational:
+        return 0.0, ["Sports/recreational activity - safe"]
 
     if entity.get("weapon_present", False):
         return 0.0, []
@@ -45,7 +68,9 @@ def evaluate_dangerous_activity(signals):
         (pose.get("hands_near_face", False) or pose.get("hands_near_chest", False))
         and motion.get("motion_score", 0) > 35
     ):
-        risk = max(risk, 0.7)
-        reasons.append("Hazardous activity near body")
+        # Check if it's cooking context
+        if not is_cooking_context:
+            risk = max(risk, 0.7)
+            reasons.append("Hazardous activity near body")
 
     return round(min(risk, 1.0), 3), reasons
