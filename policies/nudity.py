@@ -64,6 +64,16 @@ def evaluate_nudity(signals):
     
     if is_cooking_context:
         return 0.0, ["Cooking/food preparation context - safe"]
+    
+    # ------------------------------------------------
+    # FIRE CONTEXT OVERRIDE (CRITICAL FIX)
+    # ------------------------------------------------
+    # If BLIP detects fire context, immediately return SAFE - prevents false positives from fire lighting
+    fire_words = ["fire", "burning", "flame", "campfire", "bonfire"]
+    is_fire_context = any(word in nudity_desc for word in fire_words)
+    
+    if is_fire_context:
+        return 0.0, ["Fire context - safe"]
 
     # ------------------------------------------------
     # 🔴 CHILD SAFETY (ZERO TOLERANCE)
