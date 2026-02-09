@@ -15,7 +15,7 @@ def evaluate_fire_safety(signals):
 
     risk = 0.0
     reasons = []
-
+    
     human = signals.get("human", {})
     motion = signals.get("motion", {})
     visual = signals.get("visual_state", {})
@@ -30,8 +30,10 @@ def evaluate_fire_safety(signals):
     # COOKING CONTEXT OVERRIDE (CRITICAL FIX)
     # ------------------------------------------------
     # If we're in cooking context, immediately return SAFE - prevents false positives
+    # Note: Fire in cooking context should still be evaluated for safety
     if entity.get("food_present", False) or scene.get("kitchen", False):
-        return 0.0, ["Cooking context - safe"]
+        if not entity.get("fire_present", False):
+            return 0.0, ["Cooking context - safe"]
 
     # ------------------------------------------------
     # BLIP FIRE CONTEXT ANALYSIS
@@ -40,11 +42,11 @@ def evaluate_fire_safety(signals):
     descriptions = [label[0] if isinstance(label, tuple) else str(label) for label in scene_labels]
     fire_desc = " ".join(descriptions).lower()
     
-    # Fire context detection
-    dangerous_words = ["burning", "exploding", "out of control", "spreading", "wildfire", "emergency", "disaster"]
-    emergency_words = ["emergency", "rescue", "firefighter", "alarm", "evacuation", "panic"]
-    controlled_words = ["campfire", "bonfire", "fireplace", "controlled", "contained", "recreational"]
-    cooking_words = ["cooking", "stove", "oven", "grill", "kitchen", "preparing food"]
+    # Fire context detection (ENHANCED)
+    dangerous_words = ["fire", "burning", "exploding", "out of control", "spreading", "wildfire", "emergency", "disaster", "dangerous", "unsafe", "evacuate", "rescue", "firefighter"]
+    emergency_words = ["emergency", "rescue", "firefighter", "alarm", "evacuation", "panic", "disaster"]
+    controlled_words = ["campfire", "bonfire", "fireplace", "controlled", "contained", "recreational", "safe"]
+    cooking_words = ["cooking", "kitchen", "stove", "oven", "grill", "preparing food"]
 
     is_dangerous = any(word in fire_desc for word in dangerous_words)
     is_emergency = any(word in fire_desc for word in emergency_words)
@@ -60,23 +62,24 @@ def evaluate_fire_safety(signals):
         return 0.0, []  # No fire detected
 
     # ------------------------------------------------
-    # ENHANCED CONTEXT-BASED RISK ASSESSMENT
+    # ENHANCED CONTEXT-BASED RISK ASSESSMENT (PRIORITIZE COOKING)
     # ------------------------------------------------
-    if is_dangerous or is_emergency:
+    # Cooking context takes priority over dangerous context
+    if is_cooking:
+        risk = max(risk, 0.1)
+        reasons.append("Cooking fire detected")
+    
+    elif is_controlled:
+        risk = max(risk, 0.2)
+        reasons.append("Controlled/recreational fire detected")
+    
+    elif is_dangerous or is_emergency:
         risk = max(risk, 0.8)
         reasons.append("Dangerous or emergency fire situation detected")
     
     elif fire_detected and motion.get("motion_score", 0) > 60:
         risk = max(risk, 0.8)
         reasons.append("High motion with fire indicates dangerous situation")
-    
-    elif is_controlled:
-        risk = max(risk, 0.2)
-        reasons.append("Controlled/recreational fire detected")
-    
-    elif is_cooking:
-        risk = max(risk, 0.1)
-        reasons.append("Cooking fire detected")
     
     elif fire_detected or fire_objects:
         # Fire detected but context unclear

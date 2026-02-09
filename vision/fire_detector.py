@@ -22,15 +22,15 @@ def detect_fire(frame):
     
     # Additional filter: Check for actual fire-like patterns
     # Fire must be:
-    # - bright
+    # - bright enough
     # - large enough
     # - not just red/orange pixels
-    # - have flickering pattern (fire characteristic)
+    # - have sufficient fire pixel concentration
     
-    if fire_ratio > 0.05 and avg_brightness > 150:  # Increased thresholds
+    if fire_ratio > 0.02 and avg_brightness > 100:  # More reasonable thresholds
         # Check for fire-like color distribution (more red/orange concentrated)
         fire_pixels = mask > 0
-        if np.sum(fire_pixels) > 1000:  # Minimum fire pixel count
+        if np.sum(fire_pixels) > 500:  # Reasonable minimum fire pixel count
             return True
     
     return False
