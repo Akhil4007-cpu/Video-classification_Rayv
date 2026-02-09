@@ -68,12 +68,32 @@ def evaluate_nudity(signals):
     # ------------------------------------------------
     # FIRE CONTEXT OVERRIDE (CRITICAL FIX)
     # ------------------------------------------------
-    # If BLIP detects fire context, immediately return SAFE - prevents false positives from fire lighting
+    # If BLIP detects fire context, immediately return SAFE - prevents false positives
     fire_words = ["fire", "burning", "flame", "campfire", "bonfire"]
     is_fire_context = any(word in nudity_desc for word in fire_words)
     
     if is_fire_context:
         return 0.0, ["Fire context - safe"]
+    
+    # ------------------------------------------------
+    # MEDICAL CONTEXT OVERRIDE (NEW)
+    # ------------------------------------------------
+    # If BLIP detects medical context, immediately return SAFE
+    medical_words = ["medical", "hospital", "doctor", "nurse", "surgery", "examination", "procedure", "clinic", "patient", "treatment", "emergency room"]
+    is_medical_context = any(word in nudity_desc for word in medical_words)
+    
+    if is_medical_context:
+        return 0.0, ["Medical context - safe"]
+    
+    # ------------------------------------------------
+    # ARTISTIC CONTEXT OVERRIDE (NEW)
+    # ------------------------------------------------
+    # If BLIP detects artistic context, immediately return SAFE
+    artistic_words = ["art", "artist", "painting", "sculpture", "museum", "gallery", "classical", "studio", "exhibition", "drawing", "portrait", "nude art"]
+    is_artistic_context = any(word in nudity_desc for word in artistic_words)
+    
+    if is_artistic_context:
+        return 0.0, ["Artistic context - safe"]
 
     # ------------------------------------------------
     # 🔴 CHILD SAFETY (ZERO TOLERANCE)

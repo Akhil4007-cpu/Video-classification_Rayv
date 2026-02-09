@@ -65,8 +65,8 @@ def build_signals(
 
         "motion": {
             "motion_score": motion_score,
-            "aggressive_motion": motion_score > 35,
-            "sudden_motion": motion_score > 25,
+            "aggressive_motion": motion_score > 60,  # Increased from 35
+            "sudden_motion": motion_score > 45,      # Increased from 25
         },
 
         "visual_state": {
@@ -82,7 +82,7 @@ def build_signals(
 
         "temporal": {
             **temporal_state,
-            "possible_accident": motion_score > 20 and not temporal_state["impact_detected"]
+            "possible_accident": motion_score > 50 and not temporal_state["impact_detected"]  # Increased from 20
         },
         
         "scene_labels": scene_labels  # Add scene_labels for policy context analysis

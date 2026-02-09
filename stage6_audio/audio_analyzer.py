@@ -1,4 +1,12 @@
-from faster_whisper import WhisperModel
+try:
+    from faster_whisper import WhisperModel
+except ImportError:
+    try:
+        import whisper
+        WhisperModel = whisper.load_model
+    except ImportError:
+        print("⚠️ Warning: Neither faster-whisper nor whisper installed. Audio analysis disabled.")
+        WhisperModel = None
 
 _whisper_model = None
 

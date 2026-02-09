@@ -50,6 +50,17 @@ def evaluate_dangerous_activity(signals):
     if is_sports or is_recreational:
         return 0.0, ["Sports/recreational activity - safe"]
 
+    # ✅ SAFE OVERRIDE — NORMAL ACTIVITIES (NEW)
+    # Check BLIP descriptions for normal, safe activities
+    normal_activity_words = [
+        "sitting", "bench", "holding", "box", "table", "chair", "standing",
+        "walking", "talking", "phone", "paper", "shoes", "gift", "present"
+    ]
+    is_normal_activity = any(word in activity_desc for word in normal_activity_words)
+    
+    if is_normal_activity and not entity.get("weapon_present", False):
+        return 0.0, ["Normal daily activity - safe"]
+
     if entity.get("weapon_present", False):
         return 0.0, []
 

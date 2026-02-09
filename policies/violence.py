@@ -82,12 +82,33 @@ def evaluate_violence(signals):
             reasons.append("Aggressive human motion consistent with fighting")
 
     # ------------------------------------------------
+    # COOKING CONTEXT OVERRIDE (CRITICAL FIX)
+    # ------------------------------------------------
+    # If BLIP detects cooking context, immediately return SAFE - this prevents false positives
+    cooking_words = ["cooking", "food", "tomato", "vegetable", "cutting", "preparing", "kitchen", "pepper", "cutting board", "wooden"]
+    violence_desc = " ".join(descriptions).lower()
+    is_cooking_context = any(word in violence_desc for word in cooking_words)
+    
+    if is_cooking_context:
+        return 0.0, ["Cooking/food preparation context - safe"]
+    
+    # ------------------------------------------------
+    # SPORTS CONTEXT OVERRIDE (NEW)
+    # ------------------------------------------------
+    # If BLIP detects sports context, immediately return SAFE
+    sports_words = ["sport", "game", "playing", "athlete", "competition", "training", "exercise", "workout", "soccer", "basketball", "football", "tennis", "running", "swimming", "gym"]
+    is_sports_context = any(word in violence_desc for word in sports_words)
+    
+    if is_sports_context:
+        return 0.0, ["Sports activity - safe"]
+
+    # ------------------------------------------------
     # BLOOD CONFIRMATION (ENHANCED WITH BLIP)
     # ------------------------------------------------
     if visual.get("blood_visible", False):
         
         # Analyze blood context from descriptions
-        blood_desc = " ".join(descriptions).lower()
+        blood_desc = violence_desc
         cooking_words = ["cooking", "food", "tomato", "sauce", "kitchen", "cutting", "preparing"]
         injury_words = ["injury", "wound", "bleeding", "hurt", "accident", "cut", "stab"]
         
