@@ -54,7 +54,8 @@ def evaluate_dangerous_activity(signals):
     # Check BLIP descriptions for normal, safe activities
     normal_activity_words = [
         "sitting", "bench", "holding", "box", "table", "chair", "standing",
-        "walking", "talking", "phone", "paper", "shoes", "gift", "present"
+        "walking", "talking", "phone", "paper", "shoes", "gift", "present",
+        "driving", "car", "steering", "vehicle", "passenger", "seat"
     ]
     is_normal_activity = any(word in activity_desc for word in normal_activity_words)
     

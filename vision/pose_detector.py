@@ -3,8 +3,7 @@ import cv2
 
 class PoseAnalyzer:
     def __init__(self):
-        self.mp_pose = mp.solutions.pose
-        self.pose = self.mp_pose.Pose(
+        self.pose = mp.solutions.pose.Pose(
             static_image_mode=False,
             model_complexity=1,
             enable_segmentation=False,
@@ -31,11 +30,11 @@ class PoseAnalyzer:
         signals["human_present"] = True
         signals["hands_detected"] = True
 
-        left_wrist = lm[self.mp_pose.PoseLandmark.LEFT_WRIST]
-        right_wrist = lm[self.mp_pose.PoseLandmark.RIGHT_WRIST]
-        nose = lm[self.mp_pose.PoseLandmark.NOSE]
-        left_shoulder = lm[self.mp_pose.PoseLandmark.LEFT_SHOULDER]
-        right_shoulder = lm[self.mp_pose.PoseLandmark.RIGHT_SHOULDER]
+        left_wrist = lm[mp.solutions.pose.PoseLandmark.LEFT_WRIST]
+        right_wrist = lm[mp.solutions.pose.PoseLandmark.RIGHT_WRIST]
+        nose = lm[mp.solutions.pose.PoseLandmark.NOSE]
+        left_shoulder = lm[mp.solutions.pose.PoseLandmark.LEFT_SHOULDER]
+        right_shoulder = lm[mp.solutions.pose.PoseLandmark.RIGHT_SHOULDER]
 
         if left_wrist.y < nose.y or right_wrist.y < nose.y:
             signals["hands_near_face"] = True
